@@ -9,6 +9,7 @@ export function useSession(sessionId: string) {
   const { state, dispatch, startGame, throwDart, setMultiplier, editDart, newMatch } = useGame();
   const userId = useRef(getUserId());
   const loadedRef = useRef(false);
+  const isRemoteUpdate = useRef(false);
 
   useEffect(() => {
     if (loadedRef.current) return;
@@ -16,6 +17,7 @@ export function useSession(sessionId: string) {
 
     getSession(sessionId).then(session => {
       if (session.gameState) {
+        isRemoteUpdate.current = true;
         dispatch({ type: 'SYNC_STATE', state: session.gameState });
       }
     }).catch(err => {
@@ -26,6 +28,7 @@ export function useSession(sessionId: string) {
   useEffect(() => {
     const unsubscribe = subscribeToSession(sessionId, (gameState, updatedBy) => {
       if (updatedBy !== userId.current) {
+        isRemoteUpdate.current = true;
         dispatch({ type: 'SYNC_STATE', state: gameState });
       }
     });
@@ -38,38 +41,28 @@ export function useSession(sessionId: string) {
     });
   }, [sessionId]);
 
-  const syncThrow = useCallback((baseValue: number, multiplier: 'S' | 'D' | 'T') => {
-    throwDart(baseValue, multiplier);
-  }, [throwDart]);
-
-  const syncEdit = useCallback((index: number, value: number, multiplier: 'S' | 'D' | 'T') => {
-    editDart(index, value, multiplier);
-  }, [editDart]);
-
-  const syncStartGame = useCallback((names: string[], settings: GameSettings) => {
-    startGame(names, settings);
-  }, [startGame]);
-
-  const syncNewMatch = useCallback(() => {
-    newMatch();
-  }, [newMatch]);
-
-  // Sync state to server after every state change (except initial load)
+  // Sync local actions to server (skip remote updates to prevent echo)
   const prevStateRef = useRef<GameState | null>(null);
   useEffect(() => {
     if (!state.gameStarted && state.history.length === 0) return;
     if (prevStateRef.current === state) return;
     prevStateRef.current = state;
+
+    if (isRemoteUpdate.current) {
+      isRemoteUpdate.current = false;
+      return;
+    }
+
     syncToServer(state);
   }, [state, syncToServer]);
 
   return {
     state,
     userId: userId.current,
-    throwDart: syncThrow,
+    throwDart,
     setMultiplier,
-    editDart: syncEdit,
-    startGame: syncStartGame,
-    newMatch: syncNewMatch,
+    editDart,
+    startGame,
+    newMatch,
   };
 }

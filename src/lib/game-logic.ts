@@ -30,10 +30,10 @@ export function isWin(newRemaining: number, isDoubleOrBull: boolean): boolean {
   return newRemaining === 0 && isDoubleOrBull;
 }
 
-export function createInitialPlayers(names: string[], count: number): Player[] {
+export function createInitialPlayers(names: string[], count: number, startScore = START_SCORE): Player[] {
   return Array.from({ length: count }, (_, i) => ({
     name: names[i] || `Player ${i + 1}`,
-    score: START_SCORE,
+    score: startScore,
     legs: 0,
     sets: 0,
   }));

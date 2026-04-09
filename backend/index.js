@@ -68,6 +68,14 @@ app.get('/sessions/:id', async (req, res) => {
 app.put('/sessions/:id', async (req, res) => {
   try {
     const { gameState, updatedBy } = req.body;
+
+    if (!gameState || typeof gameState !== 'object' || !Array.isArray(gameState.players) || !Array.isArray(gameState.history)) {
+      return res.status(400).json({ error: 'Invalid gameState shape' });
+    }
+    if (typeof updatedBy !== 'string' || updatedBy.length > 100) {
+      return res.status(400).json({ error: 'Invalid updatedBy' });
+    }
+
     const db = await Datastore.open();
     const updated = await db.updateOne('sessions', req.params.id, {
       $set: {

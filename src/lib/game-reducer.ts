@@ -193,7 +193,7 @@ function handleEditDart(state: GameState, index: number, value: number, mult: 'S
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'START_GAME': {
-      const players = createInitialPlayers(action.names, action.settings.playerCount);
+      const players = createInitialPlayers(action.names, action.settings.playerCount, action.settings.startScore);
       return {
         ...initialGameState(),
         gameStarted: true,
