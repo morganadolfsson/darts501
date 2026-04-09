@@ -1,0 +1,15 @@
+{
+  "name": "darts501-backend",
+  "version": "1.0.0",
+  "description": "Darts 501 multiplayer backend - Codehooks.io",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "deploy": "coho deploy",
+    "logs": "coho log -f"
+  },
+  "dependencies": {
+    "codehooks-js": "^1.4.3",
+    "pusher": "^5.2.0"
+  }
+}
