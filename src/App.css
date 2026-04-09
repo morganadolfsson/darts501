@@ -311,23 +311,26 @@ body {
   letter-spacing: 3px;
   color: #232526;
 }
-.scoreboard.three-players {
+.scoreboard.many-players {
   flex-wrap: wrap;
   gap: 16px;
 }
-.scoreboard.three-players .player-score {
+.scoreboard.many-players .player-score {
   flex: 1;
-  min-width: 140px;
-  max-width: 200px;
+  min-width: 120px;
+  max-width: 180px;
+  padding: 12px 16px;
+  font-size: 1.1em;
 }
-.sets-legs-display.three-players {
+.sets-legs-display.many-players {
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
 }
-.sets-legs-display.three-players .sets-legs-score {
+.sets-legs-display.many-players .sets-legs-score {
   flex: 1;
-  min-width: 140px;
-  max-width: 200px;
+  min-width: 120px;
+  max-width: 180px;
+  padding: 12px 16px;
 }
 .history-card {
   margin-top: 0;

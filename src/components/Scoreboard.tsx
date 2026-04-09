@@ -9,11 +9,11 @@ export default function Scoreboard({ state }: Props) {
   const { players, currentPlayer, currentRemaining, settings, matchOver, matchWinner, gameOver } = state;
   const currentP = players[currentPlayer];
   const suggestion = getCheckoutSuggestion(currentRemaining);
-  const threePlayers = settings.playerCount === 3 ? 'three-players' : '';
+  const manyPlayers = settings.playerCount >= 3 ? 'many-players' : '';
 
   return (
     <>
-      <div className={`sets-legs-display stylish-row ${threePlayers}`}>
+      <div className={`sets-legs-display stylish-row ${manyPlayers}`}>
         {players.map((player, i) => (
           <div
             key={i}
@@ -27,7 +27,7 @@ export default function Scoreboard({ state }: Props) {
           </div>
         ))}
       </div>
-      <div className={`scoreboard stylish-row ${threePlayers}`}>
+      <div className={`scoreboard stylish-row ${manyPlayers}`}>
         {players.map((player, i) => (
           <div
             key={i}

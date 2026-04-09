@@ -83,7 +83,7 @@ export default function GameSetup({ onStartGame, sessionCode }: Props) {
           <div className="player-count-selection">
             <h3>Number of Players:</h3>
             <div className="player-count-buttons">
-              {[2, 3].map(count => (
+              {[2, 3, 4, 5].map(count => (
                 <button
                   key={count}
                   className={`count-btn ${playerCount === count ? 'active' : ''}`}
