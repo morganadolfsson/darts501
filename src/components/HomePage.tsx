@@ -42,7 +42,7 @@ export default function HomePage() {
   return (
     <div className="home-page">
       <div className="home-card stylish-card">
-        <h1>Darts 501</h1>
+        <h1>Darts Scoreboard</h1>
         <p>Play darts with friends - share a scoreboard in real time</p>
         {error && <p className="error-msg">{error}</p>}
         <div className="home-actions">

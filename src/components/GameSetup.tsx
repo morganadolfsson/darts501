@@ -1,15 +1,36 @@
 import { useState } from 'react';
 import type { GameSettings } from '../lib/types';
 
+type GameMode = '501' | '301-rookies';
+
+const PRESETS: Record<GameMode, { label: string; description: string; startScore: number; doubleOut: boolean }> = {
+  '501': {
+    label: 'Standard 501',
+    description: 'Classic 501 — must check out on a double or bull',
+    startScore: 501,
+    doubleOut: true,
+  },
+  '301-rookies': {
+    label: '301 for Rookies',
+    description: '301 — no double checkout required, just hit zero!',
+    startScore: 301,
+    doubleOut: false,
+  },
+};
+
 interface Props {
   onStartGame: (names: string[], settings: GameSettings) => void;
+  sessionCode?: string | null;
 }
 
-export default function GameSetup({ onStartGame }: Props) {
+export default function GameSetup({ onStartGame, sessionCode }: Props) {
+  const [gameMode, setGameMode] = useState<GameMode>('501');
   const [playerCount, setPlayerCount] = useState(2);
   const [tempNames, setTempNames] = useState<string[]>(['', '']);
   const [legsPerSet, setLegsPerSet] = useState(3);
   const [setsToWin, setSetsToWin] = useState(1);
+
+  const preset = PRESETS[gameMode];
 
   const handlePlayerCountChange = (count: number) => {
     setPlayerCount(count);
@@ -26,16 +47,39 @@ export default function GameSetup({ onStartGame }: Props) {
     onStartGame(tempNames, {
       legsPerSet,
       setsToWin,
-      startScore: 501,
+      startScore: preset.startScore,
       playerCount,
+      doubleOut: preset.doubleOut,
     });
   };
 
   return (
     <div className="App">
       <div className="scoreboard-card">
-        <h1>Darts 501 Game</h1>
+        <h1>Darts Game</h1>
+        {sessionCode && (
+          <div className="session-banner">
+            <p className="session-banner-label">Share this code to invite players:</p>
+            <div className="session-code">{sessionCode}</div>
+            <p className="session-link">{window.location.href}</p>
+          </div>
+        )}
         <div className="name-inputs stylish-card">
+          <div className="game-mode-selection">
+            <h3>Game Mode:</h3>
+            <div className="player-count-buttons">
+              {(Object.keys(PRESETS) as GameMode[]).map(mode => (
+                <button
+                  key={mode}
+                  className={`count-btn ${gameMode === mode ? 'active' : ''}`}
+                  onClick={() => setGameMode(mode)}
+                >
+                  {PRESETS[mode].label}
+                </button>
+              ))}
+            </div>
+            <p className="mode-description">{preset.description}</p>
+          </div>
           <div className="player-count-selection">
             <h3>Number of Players:</h3>
             <div className="player-count-buttons">

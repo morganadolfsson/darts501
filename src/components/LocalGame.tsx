@@ -15,7 +15,11 @@ export default function LocalGame() {
   return (
     <div className="App stylish-bg">
       <div className="scoreboard-card stylish-card">
-        <h1>Darts 501 Scoreboard</h1>
+        <h1>
+          {state.settings.doubleOut
+            ? `Darts ${state.settings.startScore} Scoreboard`
+            : `Darts ${state.settings.startScore} Rookies`}
+        </h1>
         <Scoreboard state={state} />
         {state.message && <p className="message stylish-message">{state.message}</p>}
         <DartInput

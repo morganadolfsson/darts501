@@ -10,6 +10,8 @@ export default function SessionPage() {
   const { id } = useParams<{ id: string }>();
   const {
     state,
+    sessionCode,
+    loading,
     throwDart,
     setMultiplier,
     editDart,
@@ -17,14 +19,27 @@ export default function SessionPage() {
     newMatch,
   } = useSession(id!);
 
-  if (!state.gameStarted) {
-    return <GameSetup onStartGame={startGame} />;
+  if (loading) {
+    return <div className="loading">Loading session...</div>;
   }
+
+  if (!state.gameStarted) {
+    return <GameSetup onStartGame={startGame} sessionCode={sessionCode} />;
+  }
+
+  const gameLabel = state.settings.doubleOut
+    ? `Darts ${state.settings.startScore} Scoreboard`
+    : `Darts ${state.settings.startScore} Rookies`;
 
   return (
     <div className="App stylish-bg">
       <div className="scoreboard-card stylish-card">
-        <h1>Darts 501 Scoreboard</h1>
+        <h1>{gameLabel}</h1>
+        {sessionCode && (
+          <div className="session-code-inline">
+            Session: <strong>{sessionCode}</strong>
+          </div>
+        )}
         <Scoreboard state={state} />
         {state.message && <p className="message stylish-message">{state.message}</p>}
         <DartInput

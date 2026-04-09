@@ -22,12 +22,16 @@ export function isValidDartValue(value: number, multiplier: 'S' | 'D' | 'T'): bo
   return Number.isInteger(base) && base >= 0 && base <= 20;
 }
 
-export function isBust(newRemaining: number, isDoubleOrBull: boolean): boolean {
-  return newRemaining < 0 || newRemaining === 1 || (newRemaining === 0 && !isDoubleOrBull);
+export function isBust(newRemaining: number, isDoubleOrBull: boolean, doubleOut = true): boolean {
+  if (newRemaining < 0) return true;
+  if (doubleOut && newRemaining === 1) return true;
+  if (newRemaining === 0 && doubleOut && !isDoubleOrBull) return true;
+  return false;
 }
 
-export function isWin(newRemaining: number, isDoubleOrBull: boolean): boolean {
-  return newRemaining === 0 && isDoubleOrBull;
+export function isWin(newRemaining: number, isDoubleOrBull: boolean, doubleOut = true): boolean {
+  if (newRemaining !== 0) return false;
+  return doubleOut ? isDoubleOrBull : true;
 }
 
 export function createInitialPlayers(names: string[], count: number, startScore = START_SCORE): Player[] {
@@ -43,7 +47,7 @@ export function replayHistory(
   history: Dart[],
   settings: GameSettings
 ): Omit<GameState, 'gameStarted' | 'multiplier' | 'settings'> & { players: Player[] } {
-  const { playerCount, startScore, legsPerSet, setsToWin } = settings;
+  const { playerCount, startScore, legsPerSet, setsToWin, doubleOut } = settings;
   const scores = Array(playerCount).fill(startScore);
   const legs = Array(playerCount).fill(0);
   const sets = Array(playerCount).fill(0);
@@ -66,7 +70,7 @@ export function replayHistory(
 
     const newRem = currRemaining - d.value;
 
-    if (isBust(newRem, d.isDoubleOrBull)) {
+    if (isBust(newRem, d.isDoubleOrBull, doubleOut)) {
       currRemaining = turnStart[currPlayer];
       scores[currPlayer] = turnStart[currPlayer];
       // Skip remaining darts in this busted turn
@@ -81,7 +85,7 @@ export function replayHistory(
       continue;
     }
 
-    if (isWin(newRem, d.isDoubleOrBull)) {
+    if (isWin(newRem, d.isDoubleOrBull, doubleOut)) {
       const newLegs = legs[currPlayer] + 1;
       legs[currPlayer] = newLegs;
       let setWon = false;

@@ -19,6 +19,7 @@ export interface GameSettings {
   setsToWin: number;
   startScore: number;
   playerCount: number;
+  doubleOut: boolean;
 }
 
 export interface GameState {

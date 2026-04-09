@@ -275,6 +275,42 @@ body {
   outline: none;
   border-color: #ffd600;
 }
+.game-mode-selection {
+  margin-bottom: 24px;
+}
+.game-mode-selection h3 {
+  margin: 0 0 16px 0;
+  color: #232526;
+  font-size: 1.2em;
+}
+.mode-description {
+  font-size: 0.9em;
+  color: #666;
+  font-style: italic;
+  margin: 8px 0 0 0;
+}
+.session-banner {
+  background: #e8f5e9;
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 20px;
+}
+.session-banner-label {
+  margin: 0 0 8px 0;
+  color: #388e3c;
+  font-weight: 500;
+  font-size: 0.95em;
+}
+.session-code-inline {
+  font-size: 0.95em;
+  color: #666;
+  margin-bottom: 12px;
+}
+.session-code-inline strong {
+  font-size: 1.2em;
+  letter-spacing: 3px;
+  color: #232526;
+}
 .scoreboard.three-players {
   flex-wrap: wrap;
   gap: 16px;

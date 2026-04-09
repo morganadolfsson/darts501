@@ -30,6 +30,7 @@ export function initialGameState(): GameState {
       setsToWin: 1,
       startScore: DEFAULT_START_SCORE,
       playerCount: 2,
+      doubleOut: true,
     },
   };
 }
@@ -57,11 +58,13 @@ function handleThrowDart(state: GameState, baseValue: number, mult: 'S' | 'D' | 
   const newRemaining = state.currentRemaining - scoreValue;
   const newHistory = [...history, newDart];
 
-  if (isBust(newRemaining, isDoubleOrBull)) {
+  const { doubleOut } = state.settings;
+
+  if (isBust(newRemaining, isDoubleOrBull, doubleOut)) {
     return handleBust(state, newHistory);
   }
 
-  if (isWin(newRemaining, isDoubleOrBull)) {
+  if (isWin(newRemaining, isDoubleOrBull, doubleOut)) {
     return handleWin(state, newHistory);
   }
 
@@ -71,9 +74,7 @@ function handleThrowDart(state: GameState, baseValue: number, mult: 'S' | 'D' | 
 function handleBust(state: GameState, newHistory: Dart[]): GameState {
   const { settings, players, currentPlayer } = state;
   const nextPlayer = getNextPlayer(currentPlayer, settings.playerCount);
-  const bustMessage = state.currentRemaining - newHistory[newHistory.length - 1].value === 0
-    ? "Bust! Must finish on a double or bull."
-    : "Bust! No score for this turn.";
+  const bustMessage = "Bust! No score for this turn.";
 
   return {
     ...state,

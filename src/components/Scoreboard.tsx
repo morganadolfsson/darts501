@@ -42,6 +42,7 @@ export default function Scoreboard({ state }: Props) {
           <h2>Current Turn: <span className="stylish-active">{currentP?.name}</span></h2>
           <div className="format-info">
             First to {settings.legsPerSet} legs wins set | First to {settings.setsToWin} sets wins match
+            {!settings.doubleOut && ' | No double checkout required'}
           </div>
           {suggestion && suggestion !== 'No checkout possible' && (
             <p className="suggestion">Checkout suggestion: <strong>{suggestion}</strong></p>
