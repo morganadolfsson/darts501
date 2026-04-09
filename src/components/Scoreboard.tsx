@@ -8,7 +8,7 @@ interface Props {
 export default function Scoreboard({ state }: Props) {
   const { players, currentPlayer, currentRemaining, settings, matchOver, matchWinner, gameOver } = state;
   const currentP = players[currentPlayer];
-  const suggestion = getCheckoutSuggestion(currentRemaining);
+  const suggestion = getCheckoutSuggestion(currentRemaining, settings.doubleOut);
   const manyPlayers = settings.playerCount >= 3 ? 'many-players' : '';
 
   return (
@@ -47,7 +47,7 @@ export default function Scoreboard({ state }: Props) {
           {suggestion && suggestion !== 'No checkout possible' && (
             <p className="suggestion">Checkout suggestion: <strong>{suggestion}</strong></p>
           )}
-          {suggestion === null && currentRemaining <= 170 && currentRemaining >= 2 && (
+          {suggestion === null && currentRemaining >= 2 && (
             <p className="suggestion"><em>No checkout possible this turn</em></p>
           )}
         </div>

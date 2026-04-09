@@ -1,4 +1,4 @@
-const checkoutSuggestions: Record<number, string> = {
+const doubleOutCheckouts: Record<number, string> = {
   2: "D1", 3: "1, D1", 4: "D2", 5: "1, D2", 6: "D3", 7: "3, D2", 8: "D4",
   9: "1, D4", 10: "D5", 11: "3, D4", 12: "D6", 13: "5, D4", 14: "D7",
   15: "7, D4", 16: "D8", 17: "1, D8", 18: "D9", 19: "3, D8", 20: "D10",
@@ -43,7 +43,43 @@ const checkoutSuggestions: Record<number, string> = {
   167: "T20, T19, Bull", 170: "T20, T20, Bull"
 };
 
-export function getCheckoutSuggestion(remaining: number): string | null {
-  if (remaining > 170 || remaining < 2) return null;
-  return checkoutSuggestions[remaining] ?? null;
+function getRookieCheckout(remaining: number): string | null {
+  if (remaining <= 0 || remaining > 180) return null;
+  // 1-dart finishes (1-20 single, 25 outer bull, 50 bull, doubles, triples)
+  if (remaining <= 20) return `${remaining}`;
+  if (remaining === 25) return "Outer Bull";
+  if (remaining === 50) return "Bull";
+  if (remaining <= 40 && remaining % 2 === 0) return `D${remaining / 2}`;
+  if (remaining <= 60 && remaining % 3 === 0) return `T${remaining / 3}`;
+  // 2-dart finishes: T20 + remainder
+  if (remaining <= 80) return `T20, ${remaining - 60}`;
+  if (remaining <= 100) {
+    const r = remaining - 60;
+    if (r <= 40 && r % 2 === 0) return `T20, D${r / 2}`;
+    if (r <= 60 && r % 3 === 0) return `T20, T${r / 3}`;
+    return `T20, ${r}`;
+  }
+  if (remaining <= 120) return `T20, T${Math.floor((remaining - 60) / 3) * 3 === remaining - 60 ? (remaining - 60) / 3 : 20}, ${remaining - 60 - Math.floor((remaining - 60) / 3) * 3 || ''}`.replace(/, $/, '');
+  // 3-dart: prefer T20, T20, remainder
+  if (remaining <= 180) {
+    const after2 = remaining - 120;
+    if (after2 <= 20) return `T20, T20, ${after2}`;
+    if (after2 === 25) return "T20, T20, Outer Bull";
+    if (after2 === 50) return "T20, T20, Bull";
+    if (after2 <= 40 && after2 % 2 === 0) return `T20, T20, D${after2 / 2}`;
+    if (after2 <= 60 && after2 % 3 === 0) return `T20, T20, T${after2 / 3}`;
+    // fallback: T20, T19, remainder
+    const after19 = remaining - 60 - 57;
+    if (after19 > 0 && after19 <= 20) return `T20, T19, ${after19}`;
+    if (after19 > 0 && after19 <= 40 && after19 % 2 === 0) return `T20, T19, D${after19 / 2}`;
+  }
+  return null;
+}
+
+export function getCheckoutSuggestion(remaining: number, doubleOut = true): string | null {
+  if (doubleOut) {
+    if (remaining > 170 || remaining < 2) return null;
+    return doubleOutCheckouts[remaining] ?? null;
+  }
+  return getRookieCheckout(remaining);
 }
