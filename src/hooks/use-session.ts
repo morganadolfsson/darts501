@@ -7,7 +7,7 @@ import type { GameState } from '../lib/types';
 
 export function useSession(sessionId: string) {
   const { state, dispatch, startGame, throwDart, setMultiplier, editDart, newMatch } = useGame();
-  const userId = useRef(getUserId());
+  const [userId] = useState(getUserId);
   const loadedRef = useRef(false);
   const isRemoteUpdate = useRef(false);
   const [sessionCode, setSessionCode] = useState<string | null>(null);
@@ -32,19 +32,19 @@ export function useSession(sessionId: string) {
 
   useEffect(() => {
     const unsubscribe = subscribeToSession(sessionId, (gameState, updatedBy) => {
-      if (updatedBy !== userId.current) {
+      if (updatedBy !== userId) {
         isRemoteUpdate.current = true;
         dispatch({ type: 'SYNC_STATE', state: gameState });
       }
     });
     return unsubscribe;
-  }, [sessionId, dispatch]);
+  }, [sessionId, dispatch, userId]);
 
   const syncToServer = useCallback((newState: GameState) => {
-    updateSession(sessionId, newState, userId.current).catch(err => {
+    updateSession(sessionId, newState, userId).catch(err => {
       console.error('Failed to sync:', err);
     });
-  }, [sessionId]);
+  }, [sessionId, userId]);
 
   // Sync local actions to server (skip remote updates to prevent echo)
   const prevStateRef = useRef<GameState | null>(null);
@@ -63,7 +63,7 @@ export function useSession(sessionId: string) {
 
   return {
     state,
-    userId: userId.current,
+    userId,
     sessionCode,
     loading,
     throwDart,

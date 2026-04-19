@@ -25,3 +25,6 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# gstack local artifacts (security reports, health history)
+.gstack/

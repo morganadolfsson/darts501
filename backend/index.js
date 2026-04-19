@@ -77,6 +77,11 @@ app.put('/sessions/:id', async (req, res) => {
     }
 
     const db = await Datastore.open();
+    const session = await db.getOne('sessions', req.params.id);
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+    const isMember = Array.isArray(session.players) && session.players.some(p => p.userId === updatedBy);
+    if (!isMember) return res.status(403).json({ error: 'Not a session member' });
+
     const updated = await db.updateOne('sessions', req.params.id, {
       $set: {
         gameState,
