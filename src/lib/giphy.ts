@@ -1,5 +1,7 @@
-// Giphy fetcher — uses Giphy's public beta key.
-const GIPHY_BETA_KEY = 'dc6zaTOxFJmzC';
+// Giphy fetcher — prefer VITE_GIPHY_KEY; fall back to the public beta key
+// (which Giphy now rate-limits aggressively, so reactions will quietly go
+// missing unless a real key is set on the deploy env).
+const GIPHY_KEY = import.meta.env.VITE_GIPHY_KEY || 'dc6zaTOxFJmzC';
 const GIPHY_ENDPOINT = 'https://api.giphy.com/v1/gifs/search';
 
 const QUERY_MAP: Record<string, string[]> = {
@@ -28,7 +30,7 @@ export async function fetchGif(type: string): Promise<string | null> {
     return pool[Math.floor(Math.random() * pool.length)];
   }
   try {
-    const url = `${GIPHY_ENDPOINT}?api_key=${GIPHY_BETA_KEY}&q=${encodeURIComponent(q)}&limit=8&rating=pg-13`;
+    const url = `${GIPHY_ENDPOINT}?api_key=${GIPHY_KEY}&q=${encodeURIComponent(q)}&limit=8&rating=pg-13`;
     const res = await fetch(url);
     if (!res.ok) return null;
     const json = await res.json();
