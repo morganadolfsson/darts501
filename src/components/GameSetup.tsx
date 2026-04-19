@@ -1,146 +1,116 @@
+// Drop into src/components/GameSetup.tsx — replaces original
 import { useState } from 'react';
 import type { GameSettings } from '../lib/types';
 
-type GameMode = '501' | '301-rookies';
-
-const PRESETS: Record<GameMode, { label: string; description: string; startScore: number; doubleOut: boolean }> = {
-  '501': {
-    label: 'Standard 501',
-    description: 'Classic 501 — must check out on a double or bull',
-    startScore: 501,
-    doubleOut: true,
-  },
-  '301-rookies': {
-    label: '301 for Rookies',
-    description: '301 — no double checkout required, just hit zero!',
-    startScore: 301,
-    doubleOut: false,
-  },
-};
+const AVATAR_SET = ['🎯','🔥','💀','🏴‍☠️','🦁','🐺','🐍','🦊','🐻','🦅','🦄','🐙','👑','⚡','🧨','🤠','🥷','🧙','🐉','🍺','🏆','⭐','🌶️','🎱'];
 
 interface Props {
-  onStartGame: (names: string[], settings: GameSettings) => void;
+  onStartGame: (names: string[], avatars: string[], taglines: string[], settings: GameSettings) => void;
   sessionCode?: string | null;
 }
 
 export default function GameSetup({ onStartGame, sessionCode }: Props) {
-  const [gameMode, setGameMode] = useState<GameMode>('501');
   const [playerCount, setPlayerCount] = useState(2);
-  const [tempNames, setTempNames] = useState<string[]>(['', '']);
+  const [mode, setMode] = useState<'501' | '301'>('501');
   const [legsPerSet, setLegsPerSet] = useState(3);
   const [setsToWin, setSetsToWin] = useState(1);
+  const [players, setPlayers] = useState([
+    { name: '', avatar: '🔥', tagline: '' },
+    { name: '', avatar: '🎯', tagline: '' },
+    { name: '', avatar: '🍺', tagline: '' },
+    { name: '', avatar: '🦊', tagline: '' },
+    { name: '', avatar: '🐺', tagline: '' },
+  ]);
+  const [pickerFor, setPickerFor] = useState<number | null>(null);
 
-  const preset = PRESETS[gameMode];
+  const update = (i: number, patch: Partial<typeof players[0]>) =>
+    setPlayers(prev => prev.map((p, idx) => idx === i ? { ...p, ...patch } : p));
 
-  const handlePlayerCountChange = (count: number) => {
-    setPlayerCount(count);
-    setTempNames(Array(count).fill(''));
-  };
-
-  const handleNameChange = (index: number, value: string) => {
-    const newNames = [...tempNames];
-    newNames[index] = value;
-    setTempNames(newNames);
-  };
-
-  const handleStart = () => {
-    onStartGame(tempNames, {
-      legsPerSet,
-      setsToWin,
-      startScore: preset.startScore,
-      playerCount,
-      doubleOut: preset.doubleOut,
-    });
+  const start = () => {
+    const slice = players.slice(0, playerCount);
+    onStartGame(
+      slice.map(p => p.name),
+      slice.map(p => p.avatar),
+      slice.map(p => p.tagline),
+      {
+        legsPerSet, setsToWin,
+        startScore: mode === '501' ? 501 : 301,
+        playerCount, doubleOut: mode === '501',
+      }
+    );
   };
 
   return (
-    <div className="App">
-      <div className="scoreboard-card">
-        <h1>Darts Game</h1>
-        {sessionCode && (
-          <div className="session-banner">
-            <p className="session-banner-label">Share this code to invite players:</p>
-            <div className="session-code">{sessionCode}</div>
-            <p className="session-link">{window.location.href}</p>
+    <div className="page">
+      <div className="bar-header">
+        <div className="bar-logo">
+          <span className="dot" /><span className="dot-2" />
+          <div className="bar-title">
+            <span className="display">MATCH SETUP</span>
+            <span className="sub">ROSTER · FORMAT · WALK-ON</span>
           </div>
-        )}
-        <div className="name-inputs stylish-card">
-          <div className="game-mode-selection">
-            <h3>Game Mode:</h3>
-            <div className="player-count-buttons">
-              {(Object.keys(PRESETS) as GameMode[]).map(mode => (
-                <button
-                  key={mode}
-                  className={`count-btn ${gameMode === mode ? 'active' : ''}`}
-                  onClick={() => setGameMode(mode)}
-                >
-                  {PRESETS[mode].label}
-                </button>
-              ))}
+        </div>
+      </div>
+      <div className="setup">
+        <div className="setup-left">
+          {sessionCode && (
+            <div style={{ background: 'var(--bg-1)', border: '1px solid var(--rule)', borderRadius: 12, padding: 14 }}>
+              <div style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ink-2)' }}>Share this code</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 28, letterSpacing: 8, color: 'var(--accent)' }}>{sessionCode}</div>
             </div>
-            <p className="mode-description">{preset.description}</p>
-          </div>
-          <div className="player-count-selection">
-            <h3>Number of Players:</h3>
-            <div className="player-count-buttons">
-              {[2, 3, 4, 5].map(count => (
-                <button
-                  key={count}
-                  className={`count-btn ${playerCount === count ? 'active' : ''}`}
-                  onClick={() => handlePlayerCountChange(count)}
-                >
-                  {count} Players
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="name-inputs-container">
-            {Array.from({ length: playerCount }, (_, i) => (
-              <div key={i}>
-                <label>
-                  Player {i + 1} Name:
-                  <input
-                    type="text"
-                    value={tempNames[i] || ''}
-                    onChange={e => handleNameChange(i, e.target.value)}
-                  />
-                </label>
+          )}
+          <h2>Roster</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {players.slice(0, playerCount).map((p, i) => (
+              <div key={i} className="player-row" style={{ position: 'relative' }}>
+                <div className="avatar-pick" onClick={() => setPickerFor(pickerFor === i ? null : i)}>{p.avatar}</div>
+                {pickerFor === i && (
+                  <div className="avatar-popover" style={{ left: 72, top: 60 }}>
+                    {AVATAR_SET.map(a => (
+                      <button key={a} onClick={() => { update(i, { avatar: a }); setPickerFor(null); }}>{a}</button>
+                    ))}
+                  </div>
+                )}
+                <div className="tagline-row">
+                  <input value={p.name} onChange={e => update(i, { name: e.target.value })} placeholder={`Player ${i+1}`} />
+                  <input className="tagline" value={p.tagline} onChange={e => update(i, { tagline: e.target.value })} placeholder="Walk-on quote" />
+                </div>
+                <div style={{ color: 'var(--ink-2)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>P{i+1}</div>
               </div>
             ))}
           </div>
-          <div className="format-selection">
-            <h3>Match Format:</h3>
-            <div className="format-options">
-              <div className="format-option">
-                <label>Legs per Set (best of):</label>
-                <select
-                  value={legsPerSet === 3 ? 5 : legsPerSet === 2 ? 3 : 7}
-                  onChange={e => {
-                    const bestOf = parseInt(e.target.value);
-                    setLegsPerSet(bestOf === 5 ? 3 : bestOf === 3 ? 2 : 4);
-                  }}
-                >
-                  <option value={3}>Best of 3 (first to 2)</option>
-                  <option value={5}>Best of 5 (first to 3)</option>
-                  <option value={7}>Best of 7 (first to 4)</option>
-                </select>
-              </div>
-              <div className="format-option">
-                <label>Sets to Win Match:</label>
-                <select
-                  value={setsToWin}
-                  onChange={e => setSetsToWin(parseInt(e.target.value))}
-                >
-                  {[1, 2, 3, 4, 5, 6, 7].map(n => (
-                    <option key={n} value={n}>
-                      {n} Set{n > 1 ? 's' : ''} {n > 1 ? `(best of ${n * 2 - 1})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        </div>
+        <div className="setup-right">
+          <div><h3>Format</h3>
+            <div className="pill-group" style={{ marginTop: 10 }}>
+              <button className={`pill ${mode==='501'?'active':''}`} onClick={() => setMode('501')}>501 — Double out</button>
+              <button className={`pill ${mode==='301'?'active':''}`} onClick={() => setMode('301')}>301 — Rookies</button>
             </div>
           </div>
-          <button className="start-btn" onClick={handleStart}>Start Game</button>
+          <div><h3>Players</h3>
+            <div className="pill-group" style={{ marginTop: 10 }}>
+              {[2,3,4,5].map(n => (
+                <button key={n} className={`pill ${playerCount===n?'active':''}`} onClick={() => setPlayerCount(n)}>{n} players</button>
+              ))}
+            </div>
+          </div>
+          <div><h3>Best of legs (per set)</h3>
+            <div className="pill-group" style={{ marginTop: 10 }}>
+              {[{bo:3,l:2},{bo:5,l:3},{bo:7,l:4}].map(o => (
+                <button key={o.bo} className={`pill ${legsPerSet===o.l?'active':''}`} onClick={() => setLegsPerSet(o.l)}>Best of {o.bo}</button>
+              ))}
+            </div>
+          </div>
+          <div><h3>Sets to win</h3>
+            <div className="pill-group" style={{ marginTop: 10 }}>
+              {[1,2,3,4].map(n => (
+                <button key={n} className={`pill ${setsToWin===n?'active':''}`} onClick={() => setSetsToWin(n)}>{n}</button>
+              ))}
+            </div>
+          </div>
+          <button className="btn primary" style={{ marginTop: 'auto', fontSize: 22, padding: '16px 28px' }} onClick={start}>
+            START THE MATCH →
+          </button>
         </div>
       </div>
     </div>

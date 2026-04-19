@@ -1,61 +1,74 @@
+// Drop into src/components/Scoreboard.tsx — replaces original
 import type { GameState } from '../lib/types';
 import { getCheckoutSuggestion } from '../lib/checkouts';
+import { ReactionSlot } from './ReactionLayer';
 
-interface Props {
-  state: GameState;
-}
+interface Tweaks { gifsEnabled: boolean; soundEnabled: boolean; reactionSensitivity: 'sparing' | 'balanced' | 'generous'; }
 
-export default function Scoreboard({ state }: Props) {
-  const { players, currentPlayer, currentRemaining, settings, matchOver, matchWinner, gameOver } = state;
-  const currentP = players[currentPlayer];
+export default function Scoreboard({ state, tweaks }: { state: GameState; tweaks: Tweaks }) {
+  const { players, currentPlayer, currentRemaining, turnDarts, settings } = state;
+  const count = players.length;
+  const cols = count <= 2 ? 'repeat(2, 1fr)' : count === 3 ? 'repeat(3, 1fr)' : count === 4 ? 'repeat(4, 1fr)' : 'repeat(5, 1fr)';
   const suggestion = getCheckoutSuggestion(currentRemaining, settings.doubleOut);
-  const manyPlayers = settings.playerCount >= 3 ? 'many-players' : '';
 
   return (
     <>
-      <div className={`sets-legs-display stylish-row ${manyPlayers}`}>
-        {players.map((player, i) => (
-          <div
-            key={i}
-            className={`sets-legs-score ${currentPlayer === i ? 'current stylish-active' : ''}`}
-          >
-            <div className="player-name-display">{player.name}</div>
-            <div className="sets-legs-stats">
-              <div className="sets-display">Sets: <strong>{player.sets}</strong></div>
-              <div className="legs-display">Legs: <strong>{player.legs}</strong></div>
+      <div className="stats-strip" style={{ gridTemplateColumns: cols }}>
+        {players.map((p, i) => {
+          const active = i === currentPlayer;
+          const shown = active ? currentRemaining : p.score;
+          const avg = p.turnsThrown > 0 ? (p.totalScored / p.turnsThrown).toFixed(1) : '—';
+          return (
+            <div key={i} className={`player-card ${active ? 'active' : ''}`}>
+              <div className="avatar">{p.avatar || '🎯'}</div>
+              <div>
+                <div className="player-name">{p.name}</div>
+                {p.tagline && <div className="player-tag">"{p.tagline}"</div>}
+                <div className="player-meta">
+                  <span>AVG<strong>{avg}</strong></span>
+                  <span>HIGH<strong>{p.highestTurn || 0}</strong></span>
+                  <span>CO%<strong>{p.checkoutAttempts ? Math.round(100*p.checkoutHits/p.checkoutAttempts) : 0}</strong></span>
+                </div>
+              </div>
+              <div className="score-block">
+                <div className="big">{shown}</div>
+                <div className="sub">Remaining</div>
+                <div className="sets-legs">
+                  <span>SETS <strong>{p.sets}</strong></span>
+                  <span>LEGS
+                    <span className="dots" style={{ marginLeft: 6 }}>
+                      {Array.from({ length: settings.legsPerSet }, (_, j) => (
+                        <span key={j} className={`dot ${j < p.legs ? 'on' : ''}`} />
+                      ))}
+                    </span>
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-      <div className={`scoreboard stylish-row ${manyPlayers}`}>
-        {players.map((player, i) => (
-          <div
-            key={i}
-            className={`player-score stylish-card ${currentPlayer === i ? 'current stylish-active' : ''}`}
-          >
-            {player.name}: {currentPlayer === i ? currentRemaining : player.score}
-          </div>
-        ))}
-      </div>
-      {!gameOver && !matchOver ? (
+
+      <div className="turn-banner">
         <div>
-          <h2>Current Turn: <span className="stylish-active">{currentP?.name}</span></h2>
-          <div className="format-info">
-            First to {settings.legsPerSet} legs wins set | First to {settings.setsToWin} sets wins match
-            {!settings.doubleOut && ' | No double checkout required'}
-          </div>
-          {suggestion && suggestion !== 'No checkout possible' && (
-            <p className="suggestion">Checkout suggestion: <strong>{suggestion}</strong></p>
-          )}
-          {suggestion === null && currentRemaining >= 2 && (
-            <p className="suggestion"><em>No checkout possible this turn</em></p>
-          )}
+          <span className="require">You require</span>{' '}
+          <span className="number">{currentRemaining}</span>
+          {suggestion && <span className="checkout"> · {suggestion}</span>}
         </div>
-      ) : matchOver && matchWinner !== null ? (
-        <h2 className="game-over">Match Over - {players[matchWinner]?.name} wins the match!</h2>
-      ) : (
-        <h2 className="game-over">Game Over - {currentP?.name} wins!</h2>
-      )}
+        <div className="turn-gif-slot">
+          <ReactionSlot event={state.lastEvent} tweaks={tweaks} players={state.players} />
+        </div>
+        <div className="darts">
+          {[0,1,2].map(i => {
+            const d = turnDarts[i];
+            return (
+              <div key={i} className={`dart-slot ${d ? 'filled' : ''}`}>
+                {d ? `${d.multiplier==='S'?'':d.multiplier}${d.baseValue}` : `${i+1}`}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </>
   );
 }

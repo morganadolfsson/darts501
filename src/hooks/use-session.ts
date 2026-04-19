@@ -6,7 +6,7 @@ import { getUserId } from '../lib/user-id';
 import type { GameState } from '../lib/types';
 
 export function useSession(sessionId: string) {
-  const { state, dispatch, startGame, throwDart, setMultiplier, editDart, newMatch } = useGame();
+  const { state, dispatch, startGame, throwDart, setMultiplier, editDart, undo, newMatch } = useGame();
   const [userId] = useState(getUserId);
   const loadedRef = useRef(false);
   const isRemoteUpdate = useRef(false);
@@ -69,6 +69,7 @@ export function useSession(sessionId: string) {
     throwDart,
     setMultiplier,
     editDart,
+    undo,
     startGame,
     newMatch,
   };
