@@ -1,12 +1,10 @@
-// Fetches a reaction GIF for a given event type. Uses Giphy's public beta key by default;
-// set VITE_GIPHY_KEY in .env for production.
+// Giphy fetcher — uses Giphy's public beta key.
+const GIPHY_BETA_KEY = 'dc6zaTOxFJmzC';
+const GIPHY_ENDPOINT = 'https://api.giphy.com/v1/gifs/search';
 
-const KEY = import.meta.env.VITE_GIPHY_KEY || 'dc6zaTOxFJmzC';
-const ENDPOINT = 'https://api.giphy.com/v1/gifs/search';
-
-const QUERIES: Record<string, string[]> = {
+const QUERY_MAP: Record<string, string[]> = {
   '180':       ['darts 180', 'celebrate explosion', 'mind blown'],
-  'ton-40':    ['darts celebrate', 'fist pump yes'],
+  'ton-40':    ['darts celebrate', 'yes fist pump'],
   'ton':       ['celebrate fist pump', 'lets go yeah'],
   't20':       ['bullseye', 'nice shot'],
   'bull':      ['bullseye', 'target hit'],
@@ -16,34 +14,33 @@ const QUERIES: Record<string, string[]> = {
   'leg-win':   ['celebrate winner', 'champion cheers'],
   'set-win':   ['victory fireworks', 'winner'],
   'match-win': ['championship trophy', 'epic win'],
+  'streak':    ['on fire', 'hot streak'],
 };
 
-interface GiphyImage { url?: string }
-interface GiphyItem { images?: { fixed_height?: GiphyImage; downsized_medium?: GiphyImage } }
-interface GiphyResponse { data?: GiphyItem[] }
+const gifCache = new Map<string, string[]>();
 
-const cache = new Map<string, string[]>();
-
-export async function fetchReactionGif(type: string): Promise<string | null> {
-  const list = QUERIES[type];
-  if (!list) return null;
-  const q = list[Math.floor(Math.random() * list.length)];
-  if (cache.has(q)) {
-    const pool = cache.get(q)!;
+export async function fetchGif(type: string): Promise<string | null> {
+  const queries = QUERY_MAP[type];
+  if (!queries) return null;
+  const q = queries[Math.floor(Math.random() * queries.length)];
+  if (gifCache.has(q)) {
+    const pool = gifCache.get(q)!;
     return pool[Math.floor(Math.random() * pool.length)];
   }
   try {
-    const url = `${ENDPOINT}?api_key=${KEY}&q=${encodeURIComponent(q)}&limit=8&rating=pg-13`;
+    const url = `${GIPHY_ENDPOINT}?api_key=${GIPHY_BETA_KEY}&q=${encodeURIComponent(q)}&limit=8&rating=pg-13`;
     const res = await fetch(url);
     if (!res.ok) return null;
-    const json = (await res.json()) as GiphyResponse;
-    const items: string[] = (json.data ?? [])
-      .map(it => it?.images?.fixed_height?.url || it?.images?.downsized_medium?.url)
-      .filter((u): u is string => Boolean(u));
+    const json = await res.json();
+    const items: string[] = (json.data || [])
+      .map((it: { images?: { fixed_height?: { url?: string }; downsized_medium?: { url?: string } } }) =>
+        it?.images?.fixed_height?.url || it?.images?.downsized_medium?.url)
+      .filter((u: string | undefined): u is string => Boolean(u));
     if (!items.length) return null;
-    cache.set(q, items);
+    gifCache.set(q, items);
     return items[Math.floor(Math.random() * items.length)];
-  } catch {
+  } catch (e) {
+    console.warn('[giphy] fetch failed', e);
     return null;
   }
 }

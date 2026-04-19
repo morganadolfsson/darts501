@@ -46,7 +46,6 @@ export function useSession(sessionId: string) {
     });
   }, [sessionId, userId]);
 
-  // Sync local actions to server (skip remote updates to prevent echo)
   const prevStateRef = useRef<GameState | null>(null);
   useEffect(() => {
     if (!state.gameStarted && state.history.length === 0) return;

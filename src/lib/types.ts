@@ -1,16 +1,12 @@
-// Drop this into src/lib/types.ts — additions to existing Player & GameState
-// Changes from original: added avatar, tagline, and stats fields to Player
-// Added turns[] and lastEvent to GameState for reactions engine
-
 export interface Player {
   name: string;
-  avatar: string;          // emoji string, e.g. '🔥'
-  tagline: string;         // walk-on quote
+  avatar: string;
+  tagline: string;
   score: number;
   legs: number;
   sets: number;
   turnsThrown: number;
-  totalScored: number;     // sum of turn totals (completed turns)
+  totalScored: number;
   highestTurn: number;
   checkoutAttempts: number;
   checkoutHits: number;
@@ -19,7 +15,7 @@ export interface Player {
 export interface Dart {
   player: number;
   turn: number;
-  dart: number;
+  dart: number; // 1, 2, or 3
   value: number;
   baseValue: number;
   multiplier: 'S' | 'D' | 'T';

@@ -459,7 +459,7 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px c
 .game {
   flex: 1;
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto 1fr;
   min-height: 0;
 }
 .stats-strip {
@@ -641,12 +641,12 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px c
 .reaction-slot.bad .reaction-slot-cap { background: var(--danger); color: #fff; }
 .reaction-slot.idle .reaction-slot-cap { background: var(--bg-2); color: var(--ink-2); }
 
-/* ---- play area: board (history column removed) ---- */
+/* ---- play area: board + history ---- */
 .play-area {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 340px;
   overflow: hidden;
 }
 .board-stage {
