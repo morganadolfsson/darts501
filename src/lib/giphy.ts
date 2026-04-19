@@ -1,8 +1,7 @@
-// Drop into src/lib/giphy.ts
 // Fetches a reaction GIF for a given event type. Uses Giphy's public beta key by default;
 // set VITE_GIPHY_KEY in .env for production.
 
-const KEY = (import.meta as any).env?.VITE_GIPHY_KEY || 'dc6zaTOxFJmzC';
+const KEY = import.meta.env.VITE_GIPHY_KEY || 'dc6zaTOxFJmzC';
 const ENDPOINT = 'https://api.giphy.com/v1/gifs/search';
 
 const QUERIES: Record<string, string[]> = {
@@ -19,6 +18,10 @@ const QUERIES: Record<string, string[]> = {
   'match-win': ['championship trophy', 'epic win'],
 };
 
+interface GiphyImage { url?: string }
+interface GiphyItem { images?: { fixed_height?: GiphyImage; downsized_medium?: GiphyImage } }
+interface GiphyResponse { data?: GiphyItem[] }
+
 const cache = new Map<string, string[]>();
 
 export async function fetchReactionGif(type: string): Promise<string | null> {
@@ -33,10 +36,10 @@ export async function fetchReactionGif(type: string): Promise<string | null> {
     const url = `${ENDPOINT}?api_key=${KEY}&q=${encodeURIComponent(q)}&limit=8&rating=pg-13`;
     const res = await fetch(url);
     if (!res.ok) return null;
-    const json: any = await res.json();
-    const items: string[] = (json.data || [])
-      .map((it: any) => it?.images?.fixed_height?.url || it?.images?.downsized_medium?.url)
-      .filter(Boolean);
+    const json = (await res.json()) as GiphyResponse;
+    const items: string[] = (json.data ?? [])
+      .map(it => it?.images?.fixed_height?.url || it?.images?.downsized_medium?.url)
+      .filter((u): u is string => Boolean(u));
     if (!items.length) return null;
     cache.set(q, items);
     return items[Math.floor(Math.random() * items.length)];
