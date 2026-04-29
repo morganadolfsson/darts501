@@ -62,7 +62,12 @@ export default function Scoreboard({ state, tweaks }: Props) {
         <div>
           <span className="require">You require</span>{' '}
           <span className="number">{currentRemaining}</span>
-          {suggestion && <span className="checkout"> · {suggestion}</span>}
+          {suggestion && (
+            <div className="checkout-badge">
+              <span className="checkout-label">Checkout</span>
+              <span className="checkout-route">{suggestion}</span>
+            </div>
+          )}
         </div>
         <div className="turn-gif-slot">
           <ReactionSlot event={state.lastEvent} tweaks={tweaks} players={state.players} currentPlayer={currentPlayer} />
