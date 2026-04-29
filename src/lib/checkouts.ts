@@ -1,85 +1,109 @@
-const doubleOutCheckouts: Record<number, string> = {
-  2: "D1", 3: "1, D1", 4: "D2", 5: "1, D2", 6: "D3", 7: "3, D2", 8: "D4",
-  9: "1, D4", 10: "D5", 11: "3, D4", 12: "D6", 13: "5, D4", 14: "D7",
-  15: "7, D4", 16: "D8", 17: "1, D8", 18: "D9", 19: "3, D8", 20: "D10",
-  21: "5, D8", 22: "D11", 23: "7, D8", 24: "D12", 25: "1, D12", 26: "D13",
-  27: "3, D12", 28: "D14", 29: "5, D12", 30: "D15", 31: "7, D12", 32: "D16",
-  33: "1, D16", 34: "D17", 35: "3, D16", 36: "D18", 37: "5, D16", 38: "D19",
-  39: "7, D16", 40: "D20", 41: "1, D20", 42: "2, D20", 43: "3, D20",
-  44: "4, D20", 45: "5, D20", 46: "6, D20", 47: "7, D20", 48: "8, D20",
-  49: "9, D20", 50: "Bull", 51: "11, D20", 52: "12, D20", 53: "13, D20",
-  54: "14, D20", 55: "15, D20", 56: "16, D20", 57: "17, D20", 58: "18, D20",
-  59: "19, D20", 60: "20, D20", 61: "Outer Bull, D18", 62: "T10, D16",
-  63: "T9, D18", 64: "T16, D8", 65: "Outer Bull, D20", 66: "T10, D18",
-  67: "T17, D8", 68: "T20, D4", 69: "T19, D6", 70: "T10, D20",
-  71: "T13, D16", 72: "T16, D12", 73: "T19, D8", 74: "T14, D16",
-  75: "T17, D12", 76: "T20, D8", 77: "T19, D10", 78: "T18, D12",
-  79: "T19, D11", 80: "T20, D10", 81: "T19, D12", 82: "Bull, D16",
-  83: "T17, D16", 84: "T20, D12", 85: "T15, D20", 86: "T18, D16",
-  87: "T17, D18", 88: "T20, D14", 89: "T19, D16", 90: "T20, D15",
-  91: "T17, D20", 92: "T20, D16", 93: "T19, D18", 94: "T18, D20",
-  95: "T19, D19", 96: "T20, D18", 97: "T19, D20", 98: "T20, D19",
-  99: "T19, S10, D16", 100: "T20, D20", 101: "T20, S9, D16",
-  102: "T20, S10, D16", 103: "T20, S11, D16", 104: "T18, S10, D20",
-  105: "T20, S5, D20", 106: "T20, S6, D20", 107: "T20, S15, D16",
-  108: "T19, S19, D16", 109: "T19, S12, D20", 110: "T20, S10, D20",
-  111: "T20, S11, D20", 112: "T20, S12, D20", 113: "T19, S16, D20",
-  114: "T20, S14, D20", 115: "T19, S18, D20", 116: "T19, S19, D20",
-  117: "T20, S17, D20", 118: "T20, S18, D20", 119: "T19, S12, Bull",
-  120: "T20, S20, D20", 121: "T20, S11, Bull", 122: "T18, T18, D7",
-  123: "T19, S16, Bull", 124: "T20, S14, Bull", 125: "Bull, T17, D12",
-  126: "T19, T19, D6", 127: "T20, T17, D8", 128: "T18, T14, D16",
-  129: "T19, T16, D12", 130: "T20, T20, D5", 131: "T20, T13, D16",
-  132: "Bull, Bull, D16", 133: "T20, T19, D8", 134: "T20, T14, D16",
-  135: "Bull, T15, D20", 136: "T20, T20, D8", 137: "T20, T19, D10",
-  138: "T20, T18, D12", 139: "T19, T14, D20", 140: "T20, T20, D10",
-  141: "T20, T19, D12", 142: "T20, T14, D20", 143: "T20, T17, D16",
-  144: "T20, T20, D12", 145: "T20, T15, D20", 146: "T20, T18, D16",
-  147: "T20, T17, D18", 148: "T20, T20, D14", 149: "T20, T19, D16",
-  150: "T20, T18, D18", 151: "T20, T17, D20", 152: "T20, T20, D16",
-  153: "T20, T19, D18", 154: "T20, T18, D20", 155: "T20, T19, D19",
-  156: "T20, T20, D18", 157: "T20, T19, D20", 158: "T20, T20, D19",
-  160: "T20, T20, D20", 161: "T20, T17, Bull", 164: "T20, T18, Bull",
-  167: "T20, T19, Bull", 170: "T20, T20, Bull"
-};
+// Standard 501/301 checkout calculator.
+// Algorithm:
+//   1) 1-dart finish: must be a double (D1..D20 → 2..40 even) or Bull (50).
+//      In rookie mode (doubleOut = false), any S1..S20 / 25 / 50 also wins.
+//   2) 2-dart finish: setup dart (any legal throw) + 1-dart finish for the remainder.
+//      Prefer ending on a "good" double (D20/D16/D18/D12/D14/D8/D10/D4/D6/D2/Bull),
+//      and prefer single-segment setups over triples when both work
+//      (e.g., 121 → T20, S11, Bull rather than T20, T7, D20).
+//   3) 3-dart finish: setup dart + 2-dart finish for the remainder.
+//      Highest-scoring setup first (T20, T19, T18 …), then Bull, Outer Bull, singles.
+//   In double-out mode we never leave 1 (would bust on the next throw).
 
-function getRookieCheckout(remaining: number): string | null {
-  if (remaining <= 0 || remaining > 180) return null;
-  // 1-dart finishes (1-20 single, 25 outer bull, 50 bull, doubles, triples)
-  if (remaining <= 20) return `${remaining}`;
-  if (remaining === 25) return "Outer Bull";
-  if (remaining === 50) return "Bull";
-  if (remaining <= 40 && remaining % 2 === 0) return `D${remaining / 2}`;
-  if (remaining <= 60 && remaining % 3 === 0) return `T${remaining / 3}`;
-  // 2-dart finishes: T20 + remainder
-  if (remaining <= 80) return `T20, ${remaining - 60}`;
-  if (remaining <= 100) {
-    const r = remaining - 60;
-    if (r <= 40 && r % 2 === 0) return `T20, D${r / 2}`;
-    if (r <= 60 && r % 3 === 0) return `T20, T${r / 3}`;
-    return `T20, ${r}`;
+type Dart = { label: string; value: number; isDouble: boolean };
+
+const PREFERRED_FINISH_DOUBLES: number[] = [20, 16, 18, 12, 14, 8, 10, 4, 6, 2, 17, 19, 15, 13, 11, 9, 7, 5, 3, 1];
+
+const FINISH_OPTIONS: Dart[] = [
+  ...PREFERRED_FINISH_DOUBLES.map(n => ({ label: `D${n}`, value: 2 * n, isDouble: true })),
+  { label: 'Bull', value: 50, isDouble: true },
+];
+
+function singleDartByValue(v: number, allowDouble: boolean): Dart | null {
+  if (v <= 0) return null;
+  if (v === 50) return { label: 'Bull', value: 50, isDouble: true };
+  if (v === 25) return { label: 'Outer Bull', value: 25, isDouble: false };
+  if (v >= 1 && v <= 20) return { label: `${v}`, value: v, isDouble: false };
+  if (v >= 3 && v <= 60 && v % 3 === 0) return { label: `T${v / 3}`, value: v, isDouble: false };
+  if (allowDouble && v >= 2 && v <= 40 && v % 2 === 0) return { label: `D${v / 2}`, value: v, isDouble: true };
+  return null;
+}
+
+function oneDartCheckout(score: number, doubleOut: boolean): string | null {
+  if (!doubleOut) {
+    if (score >= 1 && score <= 20) return `${score}`;
+    if (score === 25) return 'Outer Bull';
   }
-  if (remaining <= 120) return `T20, T${Math.floor((remaining - 60) / 3) * 3 === remaining - 60 ? (remaining - 60) / 3 : 20}, ${remaining - 60 - Math.floor((remaining - 60) / 3) * 3 || ''}`.replace(/, $/, '');
-  // 3-dart: prefer T20, T20, remainder
-  if (remaining <= 180) {
-    const after2 = remaining - 120;
-    if (after2 <= 20) return `T20, T20, ${after2}`;
-    if (after2 === 25) return "T20, T20, Outer Bull";
-    if (after2 === 50) return "T20, T20, Bull";
-    if (after2 <= 40 && after2 % 2 === 0) return `T20, T20, D${after2 / 2}`;
-    if (after2 <= 60 && after2 % 3 === 0) return `T20, T20, T${after2 / 3}`;
-    // fallback: T20, T19, remainder
-    const after19 = remaining - 60 - 57;
-    if (after19 > 0 && after19 <= 20) return `T20, T19, ${after19}`;
-    if (after19 > 0 && after19 <= 40 && after19 % 2 === 0) return `T20, T19, D${after19 / 2}`;
+  if (score === 50) return 'Bull';
+  if (score >= 2 && score <= 40 && score % 2 === 0) return `D${score / 2}`;
+  return null;
+}
+
+function twoDartCheckout(score: number, doubleOut: boolean): string | null {
+  // Try each preferred finish; setup must be a single segment (no double) to match pro intent.
+  for (const finish of FINISH_OPTIONS) {
+    const setupValue = score - finish.value;
+    if (setupValue < 1) continue;
+    const setup = singleDartByValue(setupValue, false);
+    if (setup) return `${setup.label}, ${finish.label}`;
+  }
+  if (!doubleOut) {
+    // Rookie mode: any single-value finish works.
+    for (let v = 1; v <= 20; v++) {
+      const setupValue = score - v;
+      if (setupValue < 1) continue;
+      const setup = singleDartByValue(setupValue, false);
+      if (setup) return `${setup.label}, ${v}`;
+    }
+    if (score - 25 >= 1) {
+      const setup = singleDartByValue(score - 25, false);
+      if (setup) return `${setup.label}, Outer Bull`;
+    }
+    if (score - 50 >= 1) {
+      const setup = singleDartByValue(score - 50, false);
+      if (setup) return `${setup.label}, Bull`;
+    }
   }
   return null;
 }
 
-export function getCheckoutSuggestion(remaining: number, doubleOut = true): string | null {
-  if (doubleOut) {
-    if (remaining > 170 || remaining < 2) return null;
-    return doubleOutCheckouts[remaining] ?? null;
+const SETUP_DARTS: Dart[] = (() => {
+  const list: Dart[] = [];
+  for (let n = 20; n >= 1; n--) list.push({ label: `T${n}`, value: 3 * n, isDouble: false });
+  list.push({ label: 'Bull', value: 50, isDouble: true });
+  list.push({ label: 'Outer Bull', value: 25, isDouble: false });
+  for (let n = 20; n >= 1; n--) list.push({ label: `${n}`, value: n, isDouble: false });
+  for (let n = 20; n >= 1; n--) list.push({ label: `D${n}`, value: 2 * n, isDouble: true });
+  return list;
+})();
+
+function threeDartCheckout(score: number, doubleOut: boolean): string | null {
+  for (const setup of SETUP_DARTS) {
+    const remaining = score - setup.value;
+    if (remaining < 2) continue;
+    if (doubleOut && remaining === 1) continue;
+    const sub = twoDartCheckout(remaining, doubleOut);
+    if (sub) return `${setup.label}, ${sub}`;
   }
-  return getRookieCheckout(remaining);
+  return null;
+}
+
+export function getCheckoutSuggestion(
+  remaining: number,
+  doubleOut: boolean = true,
+  dartsLeft: number = 3,
+): string | null {
+  if (remaining <= 0) return null;
+  if (doubleOut && remaining === 1) return null;
+  if (dartsLeft <= 0) return null;
+
+  const one = oneDartCheckout(remaining, doubleOut);
+  if (one) return one;
+  if (dartsLeft === 1) return null;
+
+  const two = twoDartCheckout(remaining, doubleOut);
+  if (two) return two;
+  if (dartsLeft === 2) return null;
+
+  return threeDartCheckout(remaining, doubleOut);
 }

@@ -14,11 +14,12 @@ interface Props {
 }
 
 export default function Scoreboard({ state, tweaks }: Props) {
-  const { players, currentPlayer, currentRemaining, turnDarts, settings } = state;
+  const { players, currentPlayer, currentRemaining, turnDarts, dartsThrown, settings } = state;
   const count = players.length;
   const gridCols = count <= 2 ? 'repeat(2, 1fr)' : count === 3 ? 'repeat(3, 1fr)' : count === 4 ? 'repeat(4, 1fr)' : 'repeat(5, 1fr)';
 
-  const suggestion = getCheckoutSuggestion(currentRemaining, settings.doubleOut);
+  const dartsLeft = Math.max(0, 3 - (dartsThrown ?? 0));
+  const suggestion = getCheckoutSuggestion(currentRemaining, settings?.doubleOut ?? true, dartsLeft);
 
   return (
     <>
