@@ -12,9 +12,9 @@ const R = {
   triple_out: 100,
   triple_in: 90,
   inner_out: 90,
-  inner_in: 18,
-  outer_bull: 18,
-  bull: 9,
+  inner_in: 24,
+  outer_bull: 24,
+  bull: 11,
 };
 
 function polar(cx: number, cy: number, r: number, degrees: number): [number, number] {
@@ -37,18 +37,6 @@ function wedgePath(cx: number, cy: number, rOuter: number, rInner: number, start
   ].join(' ');
 }
 
-function ringPath(cx: number, cy: number, rOuter: number, rInner: number) {
-  return [
-    `M ${cx} ${cy - rOuter}`,
-    `A ${rOuter} ${rOuter} 0 1 0 ${cx} ${cy + rOuter}`,
-    `A ${rOuter} ${rOuter} 0 1 0 ${cx} ${cy - rOuter}`,
-    'Z',
-    `M ${cx} ${cy - rInner}`,
-    `A ${rInner} ${rInner} 0 1 1 ${cx} ${cy + rInner}`,
-    `A ${rInner} ${rInner} 0 1 1 ${cx} ${cy - rInner}`,
-    'Z',
-  ].join(' ');
-}
 
 interface Seg {
   d: string;
@@ -123,10 +111,18 @@ export default function Dartboard({ onThrow, disabled }: Props) {
                 onClick={() => click(s.base, s.mult)} />
         ))}
 
-        <path d={ringPath(cx, cy, R.outer_bull, R.bull)} fill="#2ea05a" fillRule="evenodd" className="seg"
-              onMouseEnter={() => setHoverLabel('25')}
-              onMouseLeave={() => setHoverLabel(null)}
-              onClick={() => click(25, 'S')} />
+        {Array.from({ length: 20 }, (_, i) => {
+          const startA = i * SEG - SEG / 2;
+          const endA = startA + SEG;
+          return (
+            <path key={`ob${i}`} d={wedgePath(cx, cy, R.outer_bull, R.bull, startA, endA)}
+                  fill="#2ea05a" stroke="rgba(0,0,0,0.4)" strokeWidth={0.4}
+                  className="seg"
+                  onMouseEnter={() => setHoverLabel('25')}
+                  onMouseLeave={() => setHoverLabel(prev => prev === '25' ? null : prev)}
+                  onClick={() => click(25, 'S')} />
+          );
+        })}
         <circle cx={cx} cy={cy} r={R.bull} fill="#d03c2e" className="seg"
                 onMouseEnter={() => setHoverLabel('BULL 50')}
                 onMouseLeave={() => setHoverLabel(null)}
