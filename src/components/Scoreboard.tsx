@@ -65,7 +65,7 @@ export default function Scoreboard({ state, tweaks }: Props) {
           {suggestion && <span className="checkout"> · {suggestion}</span>}
         </div>
         <div className="turn-gif-slot">
-          <ReactionSlot event={state.lastEvent} tweaks={tweaks} players={state.players} />
+          <ReactionSlot event={state.lastEvent} tweaks={tweaks} players={state.players} currentPlayer={currentPlayer} />
         </div>
         <div className="darts">
           {[0, 1, 2].map(i => {

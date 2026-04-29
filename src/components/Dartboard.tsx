@@ -12,9 +12,9 @@ const R = {
   triple_out: 100,
   triple_in: 90,
   inner_out: 90,
-  inner_in: 16,
-  outer_bull: 16,
-  bull: 8,
+  inner_in: 18,
+  outer_bull: 18,
+  bull: 9,
 };
 
 function polar(cx: number, cy: number, r: number, degrees: number): [number, number] {
@@ -33,6 +33,19 @@ function wedgePath(cx: number, cy: number, rOuter: number, rInner: number, start
     `A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${x2} ${y2}`,
     `L ${x3} ${y3}`,
     `A ${rInner} ${rInner} 0 ${largeArc} 0 ${x4} ${y4}`,
+    'Z',
+  ].join(' ');
+}
+
+function ringPath(cx: number, cy: number, rOuter: number, rInner: number) {
+  return [
+    `M ${cx} ${cy - rOuter}`,
+    `A ${rOuter} ${rOuter} 0 1 0 ${cx} ${cy + rOuter}`,
+    `A ${rOuter} ${rOuter} 0 1 0 ${cx} ${cy - rOuter}`,
+    'Z',
+    `M ${cx} ${cy - rInner}`,
+    `A ${rInner} ${rInner} 0 1 1 ${cx} ${cy + rInner}`,
+    `A ${rInner} ${rInner} 0 1 1 ${cx} ${cy - rInner}`,
     'Z',
   ].join(' ');
 }
@@ -110,10 +123,10 @@ export default function Dartboard({ onThrow, disabled }: Props) {
                 onClick={() => click(s.base, s.mult)} />
         ))}
 
-        <circle cx={cx} cy={cy} r={R.outer_bull} fill="#2ea05a" className="seg"
-                onMouseEnter={() => setHoverLabel('25')}
-                onMouseLeave={() => setHoverLabel(null)}
-                onClick={() => click(25, 'S')} />
+        <path d={ringPath(cx, cy, R.outer_bull, R.bull)} fill="#2ea05a" fillRule="evenodd" className="seg"
+              onMouseEnter={() => setHoverLabel('25')}
+              onMouseLeave={() => setHoverLabel(null)}
+              onClick={() => click(25, 'S')} />
         <circle cx={cx} cy={cy} r={R.bull} fill="#d03c2e" className="seg"
                 onMouseEnter={() => setHoverLabel('BULL 50')}
                 onMouseLeave={() => setHoverLabel(null)}

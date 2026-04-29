@@ -164,25 +164,35 @@ const SLOT_EVENT_SET: ReadonlySet<string> = new Set([
   '180','ton-40','ton','t20','bull','bust','miss','low','leg-win','set-win','match-win',
 ]);
 
-export function ReactionSlot({ event, tweaks, players }: Props) {
+interface SlotProps extends Props {
+  currentPlayer?: number;
+}
+
+export function ReactionSlot({ event, tweaks, players, currentPlayer }: SlotProps) {
   const [fetched, setFetched] = useState<{ url: string | null; ts: number }>({ url: null, ts: 0 });
 
+  // Suppress events whose owner is no longer the active player — the prior player's
+  // reaction should clear the moment turn-change makes the next player active.
+  const visibleEvent = event && currentPlayer !== undefined && event.player !== currentPlayer
+    ? null
+    : event;
+
   useEffect(() => {
-    if (!event || !tweaks.gifsEnabled) return;
-    if (!SLOT_EVENT_SET.has(event.type)) return;
-    const ts = event.ts;
+    if (!visibleEvent || !tweaks.gifsEnabled) return;
+    if (!SLOT_EVENT_SET.has(visibleEvent.type)) return;
+    const ts = visibleEvent.ts;
     let cancelled = false;
-    fetchGif(event.type).then(url => {
+    fetchGif(visibleEvent.type).then(url => {
       if (!cancelled) setFetched({ url, ts });
     });
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- event.ts uniquely identifies the event
-  }, [event?.ts, event?.type, tweaks.gifsEnabled]);
+  }, [visibleEvent?.ts, visibleEvent?.type, tweaks.gifsEnabled]);
 
-  const slot = computeSlot(event, players, fetched);
+  const slot = computeSlot(visibleEvent, players, fetched);
 
   return (
-    <div className={`reaction-slot ${slot.flavor}`} key={event?.ts || 'idle'}>
+    <div className={`reaction-slot ${slot.flavor}`} key={visibleEvent?.ts || 'idle'}>
       <div className="reaction-slot-media">
         {slot.url
           ? <img src={slot.url} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
