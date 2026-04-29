@@ -231,20 +231,38 @@ function throwDart(state: GameState, baseValue: number, mult: 'S' | 'D' | 'T'): 
 }
 
 function undoLastDart(state: GameState): GameState {
-  if (state.turnDarts.length === 0) return state;
-  const newTurnDarts = state.turnDarts.slice(0, -1);
-  const newHistory = state.history.slice(0, -1);
-  const removed = state.turnDarts[state.turnDarts.length - 1];
-  return {
-    ...state,
-    turnDarts: newTurnDarts,
-    history: newHistory,
-    dartsThrown: state.dartsThrown - 1,
-    currentRemaining: state.currentRemaining + removed.value,
-    message: '',
-    messageType: '',
-    lastEvent: null,
+  if (state.history.length === 0) return state;
+  const trimmed = state.history.slice(0, -1);
+
+  // Reset to a fresh game with the same roster/settings, then replay everything
+  // except the last dart. This makes undo work across turn / leg / set boundaries,
+  // not just within the current turn's still-open dart slots.
+  const freshPlayers = state.players.map(p => ({
+    ...p,
+    score: state.settings.startScore,
+    legs: 0,
+    sets: 0,
+    turnsThrown: 0,
+    totalScored: 0,
+    highestTurn: 0,
+    checkoutAttempts: 0,
+    checkoutHits: 0,
+  }));
+
+  let replayed: GameState = {
+    ...initialGameState(),
+    gameStarted: true,
+    players: freshPlayers,
+    settings: state.settings,
+    currentRemaining: state.settings.startScore,
+    turnStartScore: state.settings.startScore,
   };
+
+  for (const d of trimmed) {
+    replayed = throwDart(replayed, d.baseValue, d.multiplier);
+  }
+
+  return { ...replayed, lastEvent: null, message: '', messageType: '' };
 }
 
 export function gameReducer(state: GameState, action: GameAction): GameState {

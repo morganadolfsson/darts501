@@ -53,7 +53,7 @@ export default function GameShell({
         <div className="play-area">
           <div className="board-stage" ref={boardStageRef}>
             <div className="board-controls">
-              <button className="tiny-btn" onClick={onUndo} disabled={state.turnDarts.length === 0}>↶ UNDO</button>
+              <button className="tiny-btn" onClick={onUndo} disabled={state.history.length === 0}>↶ UNDO</button>
               <button className="tiny-btn" onClick={() => onThrow(0, 'S')}>✕ MISS</button>
             </div>
             <Dartboard onThrow={onThrow} disabled={disabled} />
@@ -100,7 +100,7 @@ export default function GameShell({
           <button className="quick-btn" onClick={() => onThrow(20,'D')}>D20 · 40</button>
           <button className="quick-btn" onClick={() => onThrow(16,'D')}>D16 · 32</button>
           <button className="quick-btn" onClick={() => onThrow(50,'D')}>BULL · 50</button>
-          <button className="quick-btn undo" onClick={onUndo}>↶ UNDO</button>
+          <button className="quick-btn undo" onClick={onUndo} disabled={state.history.length === 0}>↶ UNDO</button>
         </div>
       </div>
       <GameOver state={state} onNewMatch={onNewMatch} onHome={onHome} />
